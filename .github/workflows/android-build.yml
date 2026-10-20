@@ -20,10 +20,24 @@ jobs:
 
       - name: Extract project source (if zipped)
         run: |
-          if [ -f zarvimo-source.zip ]; then
-            unzip -o zarvimo-source.zip -d .
+          echo "Repository root contents:"
+          ls -la
+
+          if [ ! -f settings.gradle.kts ]; then
+            ZIP_FILE=$(find . -maxdepth 1 -iname "*.zip" | head -n 1)
+            if [ -n "$ZIP_FILE" ]; then
+              echo "Found zip at repo root: $ZIP_FILE — extracting it."
+              unzip -o "$ZIP_FILE" -d .
+            else
+              echo "No zip file found at repo root, and settings.gradle.kts is also missing."
+            fi
           fi
-          test -f settings.gradle.kts || { echo "::error::settings.gradle.kts not found."; exit 1; }
+
+          test -f settings.gradle.kts || {
+            echo "::error::settings.gradle.kts still not found after extraction. Files currently at repo root:"
+            ls -la
+            exit 1
+          }
           chmod +x gradlew
 
       - name: Set up JDK 17
