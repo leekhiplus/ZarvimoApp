@@ -59,6 +59,21 @@ jobs:
       - name: Run unit tests
         run: ./gradlew testDebugUnitTest --stacktrace
 
+      - name: Show failing test details
+        if: failure()
+        run: |
+          echo "========== JUnit test reports =========="
+          REPORTS=$(find app/build/test-results -name "*.xml" 2>/dev/null)
+          if [ -z "$REPORTS" ]; then
+            echo "No JUnit XML reports were found — the tests likely never ran because of a compile error. Re-check the 'Run unit tests' step's own log above this one for a Kotlin compiler error."
+          else
+            for f in $REPORTS; do
+              echo "---- $f ----"
+              cat "$f"
+              echo ""
+            done
+          fi
+
       - name: Build debug APK
         run: ./gradlew assembleDebug --stacktrace
 
